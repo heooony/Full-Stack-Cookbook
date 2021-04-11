@@ -1,14 +1,15 @@
 <h1>SERVLET</h1>
-서블릿은 주로 **주로 웹 서버에서 동작**하는 애플리케이션을 구현할 때 사용합니다.
+서블릿은 주로 <b>주로 웹 서버에서 동작</b>하는 애플리케이션을 구현할 때 사용합니다.
 서블릿을 만드는 목적은 클라이언트에 서비스하기 위함이며, 서버에 서블릿이 준비되어 있어야 클라이언트가 서블릿에 접근할 수 있습니다.
 
 <h3>목차</h3>
+
 <a href="#servlet-start">servlet구현 및 실행</a><p>
 <a href="#req-resp">응답 정보 처리</a><p>
 <a href="#question">질의 문자열</a><p>
 
 
-<h2 name="serlvet-start">servlet구현 및 실행</h2>
+<h2 name="servlet-start">servlet구현 및 실행</h2>
 가장 기본적인 코드 소스를 작성해보겠습니다.
 
 - FirstSerlvet.java
