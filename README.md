@@ -4,8 +4,8 @@
 
 <h3>목차</h3>
 <a href="#servlet-start">servlet구현 및 실행</a><p>
-<a href="#req-resp">응답 정보 처리</a>
-<a href="#question">질의 문자열</a>
+<a href="#req-resp">응답 정보 처리</a><p>
+<a href="#question">질의 문자열</a><p>
 
 
 <h2 name="serlvet-start">servlet구현 및 실행</h2>
@@ -181,7 +181,7 @@ POST 방식의 요청방식은 다음과 같은 특성이 있습니다.
 3. 전달되는 질의 문자열의 길이에 제한이 없습니다.
 4. form태그를 사용해야만 요청할 수 있습니다.
 
-<h3>질의 문자열 처리</h3>
+<h3 name="question">질의 문자열 처리</h3>
 GET, POST방식에 정답은 없습니다. 그렇기 때문에 자신이 사용하는 환경에 더 적합한 것을 사용하면 되며, 두 방식으로 전달되는 것을 처리하는 방법에 대해 소개합니다.
 
 먼저 예제와 함께 다음을 살펴봅니다.
