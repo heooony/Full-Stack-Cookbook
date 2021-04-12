@@ -7,7 +7,7 @@
 <a href="#servlet-start">servlet구현 및 실행</a><p>
 <a href="#req-resp">응답 정보 처리</a><p>
 <a href="#question">질의 문자열</a><p>
-
+<a href="#download">파일 다운로드 기능</a><p>
 
 <h2 name="servlet-start">servlet구현 및 실행</h2>
 가장 기본적인 코드 소스를 작성해보겠습니다.
@@ -204,3 +204,184 @@ protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws Se
 
 만약, GET형식이 아닌 POST형식으로 받게 된다면 무엇을 바꾸면 될까요?
 바로, doGet에서 doPost으로 바꾸면 됩니다. 또한 입력하는 대상인 form에서도 method를 POST형식으로 바꾸어주어야 합니다.
+
+<h2>파일업로드</h2>
+파일업로드에 필요한 컴포넌트
+<a href="http://www.servlets.com/cos/">(라이브러리 다운로드)</a>를 가져옵니다.
+
+다운로드한 라이브러리를 압축을 풀어 lib폴더에 있는
+cos.jar를 파일을 이클립스 WEB-INf/lib폴더에 넣습니다.
+
+<h3>파일업로드 폼</h3>
+
+```html
+<form method="post" action="Upload" enctype="multipart/form-data">  
+	 이름 :<input type="text" name="name"/><p>  
+	 제목: <input type="text" name="subject"/><p>  
+	 파일첨부:<input type="file" name="file"/><p>  
+	 <input type="submit" value="업로드하기"/>
+</form>
+```
+method는 반드시 post 방식이어야 하며, <b>enctype="multipart/form-data"</b> 의 구문은 필수적으로 들어가야 합니다.
+
+html에 다음과 같은 코드를 넣으셨다면, servlet에서도 마찬가지로 요청을 받아들일 준비를 해야합니다.
+```java
+String name = request.getParameter("name");  
+String subject = request.getParameter("subject");  
+String file = request.getParameter("file");  
+  
+System.out.println("name = " + name);  
+System.out.println("subject = " + subject);  
+System.out.println("file = " + file);
+```
+
+그러나, System.out.print로 인해 출력되는 것은 모두 null이며, 값들이 넘어오지 않게 됩니다. enctype="multipart/form-data는 파일을 서버측에 저장하기 위해 설정을 하는 것이며, 설정이 되었을 때에는 <b>request로 전송된 데이터를 받을 수 없게 됩니다.</b>
+
+
+<h3>form request</h3>
+form 형식으로부터 request를 받는 과정은 다음과 같습니다.
+
+```java
+MultipartRequest m = new MultipartRequest(request, 저장폴더, 최대용량, 한글인코딩, 같은이름파일처리방법 );
+```
+
+`m.getParameter("name");` //text박스의 값 가져오기
+`m.getFilesystemName("file");` //file 박스의 첨부파일가져오기
+`File f = m.getFile("file");` //첨부된 파일의 정보
+
+그러면 다음과 같이 Servlet 파일안에 작성하여 값을 받아보도록 합니다.
+```java
+//WebContent폴더 혹은 Webapp폴더 안에 save라는 폴더가 존재해야 한다.
+String saveDir = request.getServletContext().getRealPath("/save");  
+int maxSize = 1024 * 1024 * 100;  
+String encoding = "UTF-8";  
+  
+MultipartRequest m = new MultipartRequest(request, saveDir, maxSize, encoding, new DefaultFileRenamePolicy());  
+  
+//request.getParameter 으로 받는 것이 아닌
+//m.getParameter 으로 받아야 한다. 여기서 m은 MultipartRequest의 객체이다.
+String name = m.getParameter("name");  
+String subject = m.getParameter("subject");  
+String file = m.getParameter("file");  
+
+String fileSystemName = m.getFilesystemName("file");  
+String originalFileName = m.getOriginalFileName("file");  
+
+System.out.println("name = " + name);  
+System.out.println("subject = " + subject);
+System.out.println("file = " + file);  
+System.out.println("fileSystemName = " + fileSystemName);  
+System.out.println("originalFileName = " + originalFileName);
+```
+
+```java
+request.setAttribute("name", name);  
+request.setAttribute("subject", subject);  
+request.setAttribute("fileSystemName", fileSystemName);  
+request.setAttribute("originalFileName", originalFileName);  
+request.setAttribute("fileSize", m.getFile("file").length());  
+request.setAttribute("saveDir", saveDir);  
+  
+//이동방식  
+request.getRequestDispatcher("uploadResult.jsp").forward(request, response);
+```
+<h3 name="download">파일 다운로드 기능</h3>
+
+1. HttpServlet 상속받는다.
+2. 기능
+- 업로드된 파일의 경로 알아오기
+- 한글파일 인코딩 설정(8859_1  -> euc-kr 변환)
+- 요청된 파일이름을 File객체 변환
+- ContentType설정
+	- 서버가 클라이언트쪽으로 보낼때 인코딩 설정 , MIMEType설정
+	- 브라우져가 해석가능한 파일을 열지못하도록 설정
+		- 한글인코딩( euc-kr  -> 8859_1 변환)
+		- 헤더설정(헤더란 http에게 자신의 파일의 정체를 알리는것)
+```java
+response.setContentType("application/actet-stream");
+response.setHeader("Content-Disposition", "attachment;filename=파일이름");
+```
+ 
+<h3>다운로드</h3>
+
+```html
+ <a href="/프로젝트명/서블릿클리스이름?fileName=파일이름">파일이름</a>
+```
+
+<h2>JDBC 연동하기</h2>
+<h3>시작</h3>
+JDBC는 java와 DB를 연동하는 기술로, oracle 설치 폴더에 있는 오라클 드라이버 라이브러리가 필요합니다. 라이브러리는 C:\oracle\jdbc\lib 폴더안에 있는 ojdbc14.jar 파일을 사용하고 있는 프로그램 WEB-INF/lib에 넣습니다.
+
+필자는 IntelliJ를 사용하고 있어 프로젝트 설정에서 library탭 안에 추가를 합니다.
+
+`import java.sql.*; `으로 sql 사용에 대한 준비를 시작합니다.
+
+<h3>DB연동 순서</h3>
+
+1. 로드 : 사용할 DB종류를 로드합니다. - Class.forName("연결하려는 드라이브명");
+
+```css
+	<연결하려는 드라이브명>
+	Oracle :  oracle.jdbc.driver.OracleDriver
+	Ms_Sql :  sun.jdbc.odbc.JdbcOdbcDriver
+	My_Sql :  org.git.mm.mysql.Driver
+	일반적으로 로드 부분은 생성자에서 구현합니다. (객체가 생성되는 시점에 한번만 로드 함)
+```
+2. 연결(db에 접속하는 부분)
+```java
+	Connection con = DrvierManager.getConnection(String URL , String id ,String pwd);
+
+	URL부분
+	Oracle : jdbc:oracle:thin:@localhost:1521:ORCL
+	Ms_Sql : jdbc:odbc:odbc설정을통해만든db원본명
+	My_Sql : jdbc:mysql://localhost:3306/db명
+```
+3. 실행 
+
+```java
+	Statement st = con.createStatement();
+
+	//insert/update/ delete/ create인경우는
+	//result의 값이  0이면 실패 , 1이상이면 성공.
+	int result = st.executeUpdate(String sql);
+	int result = st.executeUpdate("delete test where no=1"); 
+
+	//select문장인 경우는
+	ResultSet rs = st.executeQuery(String sql);       
+	Resultset rs = st.executeQuery("select * from test");
+
+	//ResultSet 메소드
+	boolean b =rs.next(); //커서를 앞으로 이동
+	String s =rs.getString(int 컬럼index); //컬럼에해당하는 문자열얻기
+	int i =rs.getInt(int 컬럼index); //컬럼에해당하는 숫자값 얻기
+	        
+	while(rs.next()){
+		String id = rs.getString(1);//첫번째컬럼
+		int age =rs.getInt(2);//두번째컬럼
+	}
+```
+4. 닫기(사용한 객체 닫기)
+```java
+	주체.close();
+```
+
+<h3>DB연동의 3단계</h3>
+- DB연동 부분의 3번 실행 단계 PreparedStatement 이용하기
+  
+  1. 로드
+  2. 연결
+  3. 실행
+     PreparedStatement ps = con.prepareStatement(String sql);
+       * sql인수는 insert/update/delete/select/create문장 모든문장가능함.
+       ex) insert into test values(?,?);
+           select * from test where id=?;
+
+      * sql문장에 ? 가 있는경우 ?의 순서대로 값 넣는다.
+       ps.setType(int index, Type value);
+       ex) ps.setString(1, "장희정");
+           ps.setInt(2, 20);
+           ....
+
+      * ?에 해당하는 값을 다 넣은 후에 최종적으로 실행함.
+        int i = ps.executeUpdate(); => insert,update, delete, create인경우
+        ResultSet rs = ps.executeQuery();=> select인경우
