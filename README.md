@@ -8,7 +8,7 @@
 <a href="#req-resp">응답 정보 처리</a><p>
 <a href="#question">질의 문자열</a><p>
 <a href="#download">파일 다운로드 기능</a><p>
-<a href="#filter">파일 다운로드 기능</a><p>
+<a href="#filter">Filter</a><p>
 	
 <h2 name="servlet-start">servlet구현 및 실행</h2>
 가장 기본적인 코드 소스를 작성해보겠습니다.
